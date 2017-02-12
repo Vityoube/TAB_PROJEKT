@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.sql.DataSource;
 
 /**
  * Created by vkalashnykov on 11.02.17.
@@ -12,11 +13,13 @@ import javax.annotation.PostConstruct;
 @Component
 public class UserDao {
     @Autowired
+    private DataSource dataSource;
+    @Autowired
     private JdbcTemplate jdbcTemplate;
 
     @PostConstruct
     public void initTable(){
-        String initUserScript="create table Uzytkownicy(" +
+        String initUserScript="create table if not EXISTS Uzytkownicy(" +
                 "u_id bigint not null auto_increment primary key , " +
                 "u_nazwa_uzytkownika varchar(20) not null," +
                 "u_h_id bigint not null," +
@@ -29,16 +32,11 @@ public class UserDao {
                 ");";
         System.out.println("\n"+initUserScript.toUpperCase()+"\n");
         jdbcTemplate.execute(initUserScript);
+    }
+
+    public void updateRelations() {
         String updateUserTableScript="alter table Uzytkownicy add foreign key (u_h_id) references Hasla(h_id);";
         System.out.println("\n"+updateUserTableScript.toUpperCase()+"\n");
         jdbcTemplate.execute(updateUserTableScript);
-        String updatePasswordTableScript="alter table Hasla add foreign key (h_u_id) references Uzytkownicy(u_id);";
-        System.out.println("\n"+updatePasswordTableScript.toUpperCase()+"\n");
-        jdbcTemplate.execute(updatePasswordTableScript);
-        String updateActionTableScript="alter table Akcje add foreign key (a_u_id) references Uzytkownicy(u_id);\n" +
-                "alter table Akcje add foreign key (a_i_id) references IP(i_id);";
-        System.out.println("\n"+updateActionTableScript.toUpperCase()+"\n");
-        jdbcTemplate.execute(updateActionTableScript);
     }
-
 }

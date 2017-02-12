@@ -5,6 +5,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.sql.DataSource;
 
 /**
  * Created by vkalashnykov on 11.02.17.
@@ -12,16 +13,25 @@ import javax.annotation.PostConstruct;
 @Component
 public class ActionDao {
     @Autowired
+    private DataSource dataSource;
+    @Autowired
     private JdbcTemplate jdbcTemplate;
 
     @PostConstruct
     public void initTable(){
-        String initTableScript="create table Akcje(a_id bigint not null auto_increment primary key, " +
+        String initTableScript="create table if not EXISTS Akcje(a_id bigint not null auto_increment primary key, " +
                 "a_nazwa varchar(20) not null, " +
                 "a_u_id bigint not null," +
                 "a_i_id bigint not null," +
                 "a_czas_akcji timestamp not null);";
         System.out.println("\n"+initTableScript.toUpperCase()+"\n");
         jdbcTemplate.execute(initTableScript);
+    }
+
+    public void updateRelations() {
+        String updateActionTableScript="alter table Akcje add foreign key (a_u_id) references Uzytkownicy(u_id);\n" +
+                "alter table Akcje add foreign key (a_i_id) references IP(i_id);";
+        System.out.println("\n"+updateActionTableScript.toUpperCase()+"\n");
+        jdbcTemplate.execute(updateActionTableScript);
     }
 }
