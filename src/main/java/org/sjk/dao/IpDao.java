@@ -1,6 +1,9 @@
 package org.sjk.dao;
 
+import org.sjk.dto.IP;
+import org.sjk.exception.UnsufficientPrivilegeExeption;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -16,12 +19,45 @@ public class IpDao {
     private DataSource dataSource;
     @Autowired
     private JdbcTemplate jdbcTemplate;
+    @Autowired
+    private UserDao userDao;
 
     @PostConstruct
     public void initTable(){
         String initTableScript="create table if not EXISTS IP (i_id bigint not null auto_increment primary key," +
-                "i_numer varchar(15) not null);";
+                "i_numer varchar(15) UNIQUE not null);";
         System.out.println("\n"+initTableScript.toUpperCase()+"\n");
         jdbcTemplate.execute(initTableScript);
+    }
+
+    public boolean findIP(String ipNumber) {
+        String findIpScript="select * from IP where i_numer=?";
+        System.out.println("\n"+findIpScript.toUpperCase()+"\n");
+        IP ip = jdbcTemplate.queryForObject(findIpScript,
+                new BeanPropertyRowMapper<IP>(IP.class), ipNumber);
+        if (ip==null)
+            return false;
+        return true;
+    }
+
+    public long insertIP(String ipNumber, long userId)
+            throws UnsufficientPrivilegeExeption {
+        if(!userDao.isUserAdmin(userId))
+            throw new UnsufficientPrivilegeExeption();
+        String insertIpScript="insert into IP(i_numer) values(?);";
+        System.out.println("\n"+insertIpScript.toUpperCase()+"\n");
+        jdbcTemplate.update(insertIpScript,ipNumber);
+        String selectIpIdScript="select i_id from IP where i_numer=?";
+        System.out.println("\n"+selectIpIdScript.toUpperCase()+"\n");
+        long ipId=jdbcTemplate.queryForObject(selectIpIdScript,
+                new Object[]{ipNumber},Long.class);
+        return ipId;
+    }
+
+    public long findIPId(String ipNumber){
+        String findIpScript="select i_id from IP where i_numer=?";
+        System.out.println("\n"+findIpScript.toUpperCase()+"\n");
+        long ipId = jdbcTemplate.queryForObject(findIpScript,new Object[]{ipNumber},Long.class);
+        return ipId;
     }
 }

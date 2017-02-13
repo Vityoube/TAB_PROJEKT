@@ -17,6 +17,15 @@ import java.util.Date;
 @NoArgsConstructor
 @Builder
 public class Action {
+    public interface  ActionTypes{
+        final String LOGIN="logowanie";
+        final String LOGOUT="wylogowywanie";
+        final String REGISTRATION="rejestracja";
+        final String PASSWORD_CHANGE="zmiana hasłą";
+        final String BAD_PASSWORD="próba logowania się";
+        final String BLOCK="blokada konta";
+        final String UNBLOCK="konto odblokowane";
+    }
     private long id;
     private String name;
     private long userId;

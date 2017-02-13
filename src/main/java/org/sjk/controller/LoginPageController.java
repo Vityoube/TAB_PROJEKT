@@ -18,8 +18,7 @@ public class LoginPageController{
     private UserDao userDao;
 
     @RequestMapping(method = RequestMethod.GET,value="login")
-    public String viewLoginPage(Model model, @RequestParam(value="name", required=false, defaultValue="World") String name){
-        model.addAttribute("name",name);
+    public String viewLoginPage(){
        return "user_login";
     }
     @RequestMapping(method = RequestMethod.POST)
