@@ -4,6 +4,7 @@ import org.sjk.dao.ActionDao;
 import org.sjk.dao.IpDao;
 import org.sjk.dao.PasswordDao;
 import org.sjk.dao.UserDao;
+import org.sjk.exception.PasswordExistsException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -36,10 +37,12 @@ public class TabProjektApplication{
 	}
 
 	@PostConstruct
-	public void initApplication(){
+	public void initApplication() throws PasswordExistsException {
 		userDao.updateRelations();
 		passwordDao.updateRelations();
 		actionDao.updateRelations();
+		ipDao.insertDefaultIP();
+		userDao.insertDefaultUser();
 	}
 
 

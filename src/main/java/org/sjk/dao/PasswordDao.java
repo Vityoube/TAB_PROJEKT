@@ -3,6 +3,7 @@ package org.sjk.dao;
 import org.sjk.dto.Password;
 import org.sjk.exception.PasswordNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -25,7 +26,7 @@ public class PasswordDao {
         String initTableScript="create table if not EXISTS Hasla (" +
                 "h_id bigint not null auto_increment primary key, " +
                 "h_haslo varchar(20) UNIQUE not null, " +
-                "h_u_id bigint not null);";
+                "h_u_id bigint);";
         System.out.println("\n"+initTableScript.toUpperCase()+"\n");
         jdbcTemplate.execute(initTableScript);
     }
@@ -59,37 +60,43 @@ public class PasswordDao {
         String updatePasswordScript="update Hasla set h_haslo=?" +
                 " where h_halso=?;";
         System.out.println("\n"+updatePasswordScript.toUpperCase()+"\n");
-        jdbcTemplate.update(updatePasswordScript,newPassword,oldPassword);
+        jdbcTemplate.update(updatePasswordScript,new Object[]{newPassword,oldPassword});
     }
 
     public boolean findOldPassword(String oldPassword){
-        String findOldPasswordScript="select * from Hasla where h_halso=?";
-        System.out.println("\n"+findOldPasswordScript.toUpperCase()+"\n");
-        Password password=jdbcTemplate.queryForObject(findOldPasswordScript,
-                new BeanPropertyRowMapper<Password>(Password.class),oldPassword);
-        if (password==null)
+        try {
+            String findOldPasswordScript = "select * from Hasla where h_haslo=?";
+            System.out.println("\n" + findOldPasswordScript.toUpperCase() + "\n");
+            Password password = jdbcTemplate.queryForObject(findOldPasswordScript,
+                    new BeanPropertyRowMapper<Password>(Password.class), oldPassword);
+            return true;
+        } catch (EmptyResultDataAccessException e){
             return false;
-        return true;
+        }
     }
 
     public boolean findPasswordOfUser(String username, String passwordText){
-        String findPasswordOfUserScript="select * from Hasla where h_haslo=? and h_u_id=" +
-                "(select u_id from Uzytkownicy where u_nazwa_uzytkownika=?);";
-        System.out.println("\n"+findPasswordOfUserScript.toUpperCase()+"\n");
-        Password password=jdbcTemplate.queryForObject(findPasswordOfUserScript,
-                new BeanPropertyRowMapper<Password>(Password.class),new Object[]{passwordText,username});
-        if (password==null)
+        try {
+            String findPasswordOfUserScript = "select * from Hasla where h_haslo=? and h_u_id=" +
+                    "(select u_id from Uzytkownicy where u_nazwa_uzytkownika=?);";
+            System.out.println("\n" + findPasswordOfUserScript.toUpperCase() + "\n");
+            Password password = jdbcTemplate.queryForObject(findPasswordOfUserScript,
+                    new BeanPropertyRowMapper<Password>(Password.class), new Object[]{passwordText, username});
+            return true;
+        } catch(EmptyResultDataAccessException e){
             return false;
-        return true;
+        }
     }
     public boolean findPassword(String passwordText){
-        String findPasswordScript="select * from Hasla where h_haslo=?";
-        System.out.println("\n"+findPasswordScript.toUpperCase()+"\n");
-        Password password=jdbcTemplate.queryForObject(findPasswordScript,
-                new BeanPropertyRowMapper<Password>(Password.class),new Object[]{passwordText});
-        if (password==null)
+        try {
+            String findPasswordScript = "select * from Hasla where h_haslo=?";
+            System.out.println("\n" + findPasswordScript.toUpperCase() + "\n");
+            Password password = jdbcTemplate.queryForObject(findPasswordScript,
+                    new BeanPropertyRowMapper<Password>(Password.class), new Object[]{passwordText});
+            return true;
+        } catch(EmptyResultDataAccessException e){
             return false;
-        return true;
+        }
     }
 
 }

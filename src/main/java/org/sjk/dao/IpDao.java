@@ -3,6 +3,7 @@ package org.sjk.dao;
 import org.sjk.dto.IP;
 import org.sjk.exception.UnsufficientPrivilegeExeption;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
@@ -31,33 +32,50 @@ public class IpDao {
     }
 
     public boolean findIP(String ipNumber) {
-        String findIpScript="select * from IP where i_numer=?";
-        System.out.println("\n"+findIpScript.toUpperCase()+"\n");
-        IP ip = jdbcTemplate.queryForObject(findIpScript,
-                new BeanPropertyRowMapper<IP>(IP.class), ipNumber);
-        if (ip==null)
+        try {
+            String findIpScript = "select * from IP where i_numer=?";
+            System.out.println("\n" + findIpScript.toUpperCase() + "\n");
+            IP ip = jdbcTemplate.queryForObject(findIpScript,
+                    new BeanPropertyRowMapper<IP>(IP.class), ipNumber);
+            return true;
+        } catch (EmptyResultDataAccessException e){
             return false;
-        return true;
+        }
     }
 
     public long insertIP(String ipNumber, long userId)
             throws UnsufficientPrivilegeExeption {
-        if(!userDao.isUserAdmin(userId))
-            throw new UnsufficientPrivilegeExeption();
-        String insertIpScript="insert into IP(i_numer) values(?);";
-        System.out.println("\n"+insertIpScript.toUpperCase()+"\n");
-        jdbcTemplate.update(insertIpScript,ipNumber);
-        String selectIpIdScript="select i_id from IP where i_numer=?";
-        System.out.println("\n"+selectIpIdScript.toUpperCase()+"\n");
-        long ipId=jdbcTemplate.queryForObject(selectIpIdScript,
-                new Object[]{ipNumber},Long.class);
-        return ipId;
+        try {
+            if (!userDao.isUserAdmin(userId))
+                throw new UnsufficientPrivilegeExeption();
+            String insertIpScript = "insert into IP(i_numer) values(?);";
+            System.out.println("\n" + insertIpScript.toUpperCase() + "\n");
+            jdbcTemplate.update(insertIpScript, ipNumber);
+            String selectIpIdScript = "select i_id from IP where i_numer=?";
+            System.out.println("\n" + selectIpIdScript.toUpperCase() + "\n");
+            long ipId = jdbcTemplate.queryForObject(selectIpIdScript,
+                    new Object[]{ipNumber}, Long.class);
+            return ipId;
+        } catch (EmptyResultDataAccessException e){
+            return -1;
+        }
     }
 
     public long findIPId(String ipNumber){
-        String findIpScript="select i_id from IP where i_numer=?";
-        System.out.println("\n"+findIpScript.toUpperCase()+"\n");
-        long ipId = jdbcTemplate.queryForObject(findIpScript,new Object[]{ipNumber},Long.class);
-        return ipId;
+        try {
+            String findIpScript = "select i_id from IP where i_numer=?";
+            System.out.println("\n" + findIpScript.toUpperCase() + "\n");
+            long ipId = jdbcTemplate.queryForObject(findIpScript, new Object[]{ipNumber}, Long.class);
+            return ipId;
+        } catch(EmptyResultDataAccessException e){
+            return -1;
+        }
+    }
+
+
+    public void insertDefaultIP() {
+        String insertIpScript="insert into IP(i_numer) values(\'0.0.0.1\');";
+        System.out.println("\n"+insertIpScript.toUpperCase()+"\n");
+        jdbcTemplate.update(insertIpScript);
     }
 }

@@ -39,4 +39,5 @@ public class User {
     private String phone;
     private String registrationStatus;
     private String userStatus;
+    private boolean online;
 }
