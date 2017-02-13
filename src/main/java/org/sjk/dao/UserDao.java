@@ -11,6 +11,8 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.sql.Timestamp;
 
 /**
@@ -268,9 +270,12 @@ public class UserDao {
         System.out.println("\n"+userIdQuery.toUpperCase()+"\n");
         long userId=jdbcTemplate.queryForObject(userIdQuery,
                 new Object[]{admin.getUserName()},Long.class);
-
-        long ipId=ipDao.findIPId("0.0.0.1");
-        passwordDao.updatePassword(userId,passwordId);
-        actionDao.insertAction(Action.ActionTypes.REGISTRATION,new Timestamp(System.currentTimeMillis()),userId,ipId);
+        try {
+            InetAddress ip=InetAddress.getLocalHost();
+            long ipId=ipDao.findIPId(ip.getHostAddress());passwordDao.updatePassword(userId,passwordId);
+            actionDao.insertAction(Action.ActionTypes.REGISTRATION,new Timestamp(System.currentTimeMillis()),userId,ipId);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -10,6 +10,8 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 /**
  * Created by vkalashnykov on 11.02.17.
@@ -33,10 +35,10 @@ public class IpDao {
 
     public boolean findIP(String ipNumber) {
         try {
-            String findIpScript = "select * from IP where i_numer=?";
+            String findIpScript = "select i_numer from IP where i_numer=?";
             System.out.println("\n" + findIpScript.toUpperCase() + "\n");
-            IP ip = jdbcTemplate.queryForObject(findIpScript,
-                    new BeanPropertyRowMapper<IP>(IP.class), ipNumber);
+            String ip = jdbcTemplate.queryForObject(findIpScript,
+                    new Object[]{ipNumber},String.class);
             return true;
         } catch (EmptyResultDataAccessException e){
             return false;
@@ -74,8 +76,16 @@ public class IpDao {
 
 
     public void insertDefaultIP() {
-        String insertIpScript="insert into IP(i_numer) values(\'0.0.0.1\');";
-        System.out.println("\n"+insertIpScript.toUpperCase()+"\n");
-        jdbcTemplate.update(insertIpScript);
+        InetAddress ip;
+        try {
+            ip=InetAddress.getLocalHost();
+            String serverIpNumber=ip.getHostAddress();
+            System.out.println("Server ip: "+ip);
+            String insertIpScript = "insert into IP(i_numer) values(?);";
+            System.out.println("\n" + insertIpScript.toUpperCase() + "\n");
+            jdbcTemplate.update(insertIpScript,serverIpNumber);
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
     }
 }
