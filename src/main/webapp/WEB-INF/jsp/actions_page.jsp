@@ -12,7 +12,7 @@
     <title>Akcje</title>
 </head>
 <body style="text-align: center">
-    <h1>Akcje użytkownika:</h1>
+    <h1>Akcje użytkownika: </h1>
     <input type="submit" value="zmiana hasła">
     <input type="submit" value="wyloguj">
     <table align="center" style="border: solid 1px">

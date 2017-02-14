@@ -10,7 +10,16 @@
 <head>
     <title>Zmiana Hasła</title>
 </head>
-<body>
+<body style="text-align: center">
 <h1>Zmiana hasła</h1>
+<form method="post">
+    Stare hasło: <input type="text" name="password"/>
+    <br>
+    Nowe hasło: <input type="text" name="password"/>
+    <br>
+    Powtórz nowe hasło: <input type="text" name="password"/>
+    <br>
+    <input type="submit" value="zatwierdź" formaction="login"/>
+</form>
 </body>
 </html>
