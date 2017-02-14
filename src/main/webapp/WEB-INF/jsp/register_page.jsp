@@ -1,3 +1,4 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%--
   Created by IntelliJ IDEA.
   User: vkalashnykov
@@ -15,15 +16,34 @@
     <form method="post">
         Login: <input type="text" name="username"/>
         <br>
+        <br>
         Imię: <input type="text" name="firstName"/>
         <br>
-        Nazwisko: <input type="text" name="lasstName"/>
+        <br>
+        Nazwisko: <input type="text" name="lastName"/>
+        <br>
         <br>
         Email: <input type="text" name="email"/>
         <br>
+        <br>
         Telefon: <input type="text" name="phone"/>
         <br>
-        <input type="submit" value="rejestruj" formaction="login"/>
+        <br>
+        Adres:&nbsp;<input type="text" name="address">
+        <br>
+        <br>
+        <input type="submit" value="rejestruj" formaction="register" formmethod="post"/>
+        <c:choose>
+            <c:when test="${!empty registerError}">
+                <p style="color: red">${registerError}</p>
+            </c:when>
+            <c:when test="${!empty generatedPassword}">
+                <p style="color: greenyellow">Rejestracja pomyślna</p>
+                <br>
+                <br>
+                <p>Proszę wejść na stronę używając hasła: <b>${generatedPassword}</b></p>
+            </c:when>
+        </c:choose>
     </form>
 </body>
 </html>

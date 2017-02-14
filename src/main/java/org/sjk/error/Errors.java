@@ -10,6 +10,7 @@ public enum Errors {
     USER_NOT_FOUND("Uzytkownik nie jest odnaleziony"),
     BAD_CREDENTIALS("Niepoprawne hasłó"),
     PASSWORD_EXISTS("To hasło juz zajęte."),
+    USER_EXISTS("Nazwa użytkownika zajęta, proszę sprobować inną."),
     USER_BLOCKED("Bład podczas próby logowania sie. Proszę sprobować później.");
 
 

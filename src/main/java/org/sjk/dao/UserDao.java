@@ -58,30 +58,35 @@ public class UserDao {
         jdbcTemplate.execute(updateUserTableScript);
     }
 
-    public long insertUser(User user, String password,String ip) throws PasswordExistsException {
-        if (passwordDao.findPassword(password))
-            throw new PasswordExistsException();
-        String userInsertScript="insert into Uzytkownicy(u_nazwa_uzytkownika," +
-                "u_status_rejestracji, u_status, u_imie, u_nazwisko, u_adres," +
-                "u_telefon,u_online,u_email) values(?,?,?,?,?,?,?,?,?);";
-        jdbcTemplate.update(userInsertScript,new Object[]{
-                user.getUserName(), User.RegistrationStatuses.PENDING,
-                user.getUserStatus(),user.getFirstName(),user.getLastName(),
-                user.getAddress(), user.getPhone(),user.getEmail()
-        });
-        long passwordId=passwordDao.insertPassword(password);
-        String updateUserScript="update Uzytkownicy set u_h_id="+passwordId+
-                " where u_nazwa_uzytkownika=?;";
-        jdbcTemplate.update(updateUserScript,passwordId,user.getUserName());
-        String userIdQuery="select u_id " +
-                "from Uzytkownicy where u_nazwa_uzytkownika=?";
-        long userId=jdbcTemplate.queryForObject(userIdQuery,
+    public long insertUser(User user, String password,String ip) throws PasswordExistsException, UserExistsException {
+        long userCounts=jdbcTemplate.queryForObject("select count(*) as uzytkownicy_count from Uzytkownicy where u_nazwa_uzytkownika=?",
                 new Object[]{user.getUserName()},Long.class);
+        if (userCounts == 0) {
+            if (passwordDao.findPassword(password))
+                throw new PasswordExistsException();
+            String userInsertScript="insert into Uzytkownicy(u_nazwa_uzytkownika," +
+                    "u_status_rejestracji, u_status, u_imie, u_nazwisko, u_adres," +
+                    "u_telefon,u_online,u_email) values(?,?,?,?,?,?,?,?,?);";
+            jdbcTemplate.update(userInsertScript,new Object[]{
+                    user.getUserName(), user.getRegistrationStatus(),
+                    user.getUserStatus(),user.getFirstName(),user.getLastName(),
+                    user.getAddress(), user.getPhone(),user.isOnline(),user.getEmail()
+            });
+            long passwordId=passwordDao.insertPassword(password);
+            String updateUserScript="update Uzytkownicy set u_h_id=? where u_nazwa_uzytkownika=?;";
+            jdbcTemplate.update(updateUserScript,passwordId,user.getUserName());
+            String userIdQuery="select u_id " +
+                    "from Uzytkownicy where u_nazwa_uzytkownika=?";
+            long userId=jdbcTemplate.queryForObject(userIdQuery,
+                    new Object[]{user.getUserName()},Long.class);
 
-        long ipId=ipDao.findIPId(ip);
-        passwordDao.updatePassword(userId,passwordId);
-        actionDao.insertAction(Action.ActionTypes.REGISTRATION,new Timestamp(System.currentTimeMillis()),userId,ipId);
-        return userId;
+            long ipId=ipDao.findIPId(ip);
+            passwordDao.updatePassword(userId,passwordId);
+            actionDao.insertAction(Action.ActionTypes.REGISTRATION,new Timestamp(System.currentTimeMillis()),userId,ipId);
+            return userId;
+        }
+        throw new UserExistsException();
+
     }
 
     public void registerUser(String username,String password, String ip){
