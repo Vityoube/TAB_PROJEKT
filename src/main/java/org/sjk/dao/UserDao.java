@@ -7,12 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 
 /**
@@ -101,6 +104,31 @@ public class UserDao {
         } catch(EmptyResultDataAccessException e){
             return false;
         }
+    }
+
+    public User findUserById(long userId){
+        String userFindScript = "select * from Uzytkownicy " +
+                "where u_id=?";
+        User user = jdbcTemplate.queryForObject(userFindScript, new RowMapper<User>() {
+            @Override
+            public User mapRow(ResultSet resultSet, int i) throws SQLException {
+                User user=User.builder()
+                        .id(resultSet.getLong("u_id"))
+                        .userName(resultSet.getString("u_nazwa_uzytkownika"))
+                        .userStatus(resultSet.getString("u_status"))
+                        .email(resultSet.getString("u_email"))
+                        .registrationStatus(resultSet.getString("u_status_rejestracji"))
+                        .firstName(resultSet.getString("u_imie"))
+                        .lastName(resultSet.getString("u_nazwisko"))
+                        .address(resultSet.getString("u_adres"))
+                        .online(resultSet.getBoolean("u_online"))
+                        .passwordId(resultSet.getLong("u_h_id"))
+                        .phone(resultSet.getString("u_telefon"))
+                        .blockTime(resultSet.getTimestamp("u_czas_blokady")).build();
+                return user;
+            }
+        }, userId);
+        return user;
     }
 
     public long loginUser(String username,String password, String ip)

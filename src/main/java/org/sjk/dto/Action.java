@@ -31,5 +31,6 @@ public class Action {
     private String name;
     private long userId;
     private long ipId;
+    private String ipAdress;
     private Timestamp actionTime;
 }

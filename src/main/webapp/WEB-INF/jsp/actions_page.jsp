@@ -1,3 +1,4 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jstl/core_rt" %>
 <%--
   Created by IntelliJ IDEA.
   User: vkalashnykov
@@ -12,5 +13,15 @@
 </head>
 <body>
     <h1>Akcje</h1>
+    <table>
+        <c:forEach items="${actions}" var="action">
+            <tr>
+                <td>${action.name}</td>
+                <td>${action.actionTime}</td>
+                <td>${action.ipAdress}</td>
+            </tr>
+        </c:forEach>
+    </table>
+
 </body>
 </html>

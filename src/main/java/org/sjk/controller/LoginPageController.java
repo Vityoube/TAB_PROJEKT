@@ -2,15 +2,18 @@ package org.sjk.controller;
 
 import org.sjk.dao.IpDao;
 import org.sjk.dao.UserDao;
+import org.sjk.dto.User;
 import org.sjk.error.Errors;
 import org.sjk.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.InetAddress;
@@ -42,16 +45,20 @@ public class LoginPageController{
     @RequestMapping(method = RequestMethod.POST,value = "login")
     public ModelAndView loginAction(Model model, @RequestParam(name = "username",required=true)String username,
                                     @RequestParam(name="password",required = true)String password,
-                                    HttpServletRequest request) throws UnknownHostException {
+                                    HttpServletRequest request,
+                                    @ModelAttribute("user") User currentUser,
+                                    RedirectAttributes redirectAttributes) throws UnknownHostException {
         try {
             clientIp =request.getHeader("X-FORWARDED-FOR");
             if (clientIp==null)
                 clientIp=request.getRemoteAddr();
             if ("127.0.0.1".equals(clientIp) || "0:0:0:0:0:0:0:1".equals(clientIp))
                 clientIp=InetAddress.getLocalHost().getHostAddress();
-            long currrentUserId=userDao.loginUser(username,password,clientIp);
+            long currentUserId=userDao.loginUser(username,password,clientIp);
+            currentUser=userDao.findUserById(currentUserId);
+            setCurrentUser(currentUser);
+            redirectAttributes.addFlashAttribute("user",currentUser);
             ModelAndView modelAndView=new ModelAndView("redirect:/actions");
-            modelAndView.addObject("userId",currrentUserId);
             return modelAndView;
         } catch (IpNotFoundException e) {
             e.printStackTrace();
@@ -68,8 +75,13 @@ public class LoginPageController{
             e.printStackTrace();
             return new ModelAndView("login_site");
         }
-
     }
+
+    @ModelAttribute("user")
+    public User setCurrentUser(User currentUser){
+        return currentUser;
+    }
+
 
 
 }

@@ -4,10 +4,13 @@ import org.sjk.dto.Action;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Time;
 import java.sql.Timestamp;
 import java.util.Date;
@@ -40,8 +43,20 @@ public class ActionDao {
     }
 
     public List<Action> findAllActions(long userId){
-        String findActionsForUserScript="select * from Akcje where a_u_id="+userId;
-        List<Action> userActions=jdbcTemplate.query(findActionsForUserScript,new BeanPropertyRowMapper<Action>(Action.class));
+        String findActionsForUserScript="select * from Akcje where a_u_id=?";
+        List<Action> userActions=jdbcTemplate.query(findActionsForUserScript,new RowMapper<Action>() {
+            @Override
+            public Action mapRow(ResultSet resultSet, int i) throws SQLException {
+                Action action=Action.builder()
+                        .id(resultSet.getLong("a_id"))
+                        .name(resultSet.getString("a_nazwa"))
+                        .actionTime(resultSet.getTimestamp("a_czas_akcji"))
+                        .ipId(resultSet.getLong("a_i_id")).build();
+                action.setIpAdress(jdbcTemplate.queryForObject("select i_numer from IP where i_id=?",new Object[]{action.getIpId()},
+                        String.class));
+                return action;
+            }
+        },new Object[]{userId});
         return userActions;
     }
 
