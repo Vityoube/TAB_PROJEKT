@@ -36,10 +36,11 @@ public class ActionsPageController {
         return new ModelAndView("actions_page");
     }
     @RequestMapping(value="actionsRemove",method = RequestMethod.POST)
-    public ModelAndView removeActions(Model model){
+    public ModelAndView removeActions(Model model, HttpServletRequest request){
+        currentUser=(User)request.getSession().getAttribute("currentUser");
         actionDao.removeActionsForUser(currentUser.getId());
         List<Action> userActions=actionDao.findAllActions(currentUser.getId());
-        model.asMap().replace("actions",userActions);
+        model.addAttribute("actions",userActions);
         return new ModelAndView("actions_page");
     }
 

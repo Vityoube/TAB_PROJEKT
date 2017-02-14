@@ -12,15 +12,16 @@
     <title>Akcje</title>
 </head>
 <body style="text-align: center">
+<form >
     <h1>Akcje użytkownika: </h1>
-    <input type="submit" value="zmiana hasła">
-    <input type="submit" value="wyloguj">
+    <input type="submit" value="zmiana hasła" formmethod="get">
+    <input type="submit" value="wyloguj" formmethod="post">
     <table align="center" style="border: solid 1px">
-            <tr>
-                <th style="border: solid 1px">Typ akcji</th>
-                <th style="border: solid 1px">Czas</th>
-                <th style="border: solid 1px">Adres IP</th>
-            </tr>
+        <tr>
+            <th style="border: solid 1px">Typ akcji</th>
+            <th style="border: solid 1px">Czas</th>
+            <th style="border: solid 1px">Adres IP</th>
+        </tr>
         <c:forEach items="${actions}" var="action">
             <tr >
                 <td style="border: solid 1px">${action.name}</td>
@@ -30,7 +31,9 @@
         </c:forEach>
     </table>
     <br>
-    <input type="submit" value="czyść liste">
+    <input type="submit" value="czyść liste" formaction="actionsRemove" formmethod="post">
+</form>
+
 
 </body>
 </html>

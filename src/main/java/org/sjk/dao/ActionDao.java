@@ -67,8 +67,8 @@ public class ActionDao {
     }
 
     public void removeActionsForUser(long userId) {
-        String removeUserActionsScript = "delete from Akcje where a_u_id=" + userId;
-        jdbcTemplate.update(removeUserActionsScript);
+        String removeUserActionsScript = "delete from Akcje where a_u_id=?";
+        jdbcTemplate.update(removeUserActionsScript,new Object[]{userId});
     }
     public void insertAction(String actionName, Timestamp actionTime, long userId, long ipId){
         String insertActionScript="insert into Akcje(a_nazwa,a_czas_akcji,a_u_id,a_i_id) values(\'"+actionName+
