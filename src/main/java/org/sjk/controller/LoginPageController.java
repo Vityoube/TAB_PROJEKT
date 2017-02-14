@@ -32,14 +32,18 @@ public class LoginPageController{
     private String clientIp;
 
     @RequestMapping(method = RequestMethod.GET,value="login")
-    public ModelAndView viewLoginPage(HttpServletRequest request) throws UnknownHostException {
+    public ModelAndView viewLoginPage( @ModelAttribute("user") User currentUser, HttpServletRequest request, Model model) throws UnknownHostException {
         String clientIpAddress=request.getHeader("X-FORWARDED-FOR");
         if (clientIpAddress==null)
             clientIpAddress=request.getRemoteAddr();
-        if ("127.0.0.1".equals(clientIpAddress))
+        if ("127.0.0.1".equals(clientIpAddress)  || "0:0:0:0:0:0:0:1".equals(clientIpAddress) )
             clientIpAddress= InetAddress.getLocalHost().getHostAddress();
-       if (ipDao.findIP(clientIpAddress))
-            return new ModelAndView("login_site");
+       if (ipDao.findIP(clientIpAddress)){
+           if (userDao.isUserOnline((User)model.asMap().get("user")))
+               return new ModelAndView("redirect:/actions");
+           return new ModelAndView("login_site");
+       }
+
        return new ModelAndView("ip_error");
     }
     @RequestMapping(method = RequestMethod.POST,value = "login")
@@ -62,17 +66,20 @@ public class LoginPageController{
             return modelAndView;
         } catch (IpNotFoundException e) {
             e.printStackTrace();
-            model.addAttribute("error", Errors.IP_NOT_FOUND);
+            model.addAttribute("error", Errors.IP_NOT_FOUND.getErrorDescripton());
             return new ModelAndView("login_site");
 
         }  catch (UserNotFoundException e) {
             e.printStackTrace();
+            model.addAttribute("error", Errors.USER_NOT_FOUND.getErrorDescripton());
             return new ModelAndView("login_site");
         } catch (BadCredentialException e) {
             e.printStackTrace();
+            model.addAttribute("error", Errors.BAD_CREDENTIALS.getErrorDescripton());
             return new ModelAndView("login_site");
         } catch (UserBlockedException e) {
             e.printStackTrace();
+            model.addAttribute("error", Errors.USER_BLOCKED.getErrorDescripton());
             return new ModelAndView("login_site");
         }
     }

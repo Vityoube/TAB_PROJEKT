@@ -173,6 +173,16 @@ public class UserDao {
                 ipDao.findIPId(ip));
     }
 
+    public boolean isUserOnline(User user){
+        String getUserOnlineStatusScript="select u_online from Uzytkownicy where u_id=?";
+        try {
+            boolean userOnline = jdbcTemplate.queryForObject(getUserOnlineStatusScript, new Object[]{user.getId()}, Boolean.class);
+            return userOnline;
+        } catch(EmptyResultDataAccessException e){
+            return false;
+        }
+    }
+
     public long changePasswordForUser(String username,
                                       String oldPassword, String newPassword, String ip)
             throws PasswordNotFoundException {
