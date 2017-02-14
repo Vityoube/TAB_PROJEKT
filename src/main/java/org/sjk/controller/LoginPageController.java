@@ -26,6 +26,8 @@ public class LoginPageController{
     @Autowired
     private IpDao ipDao;
 
+    private String clientIp;
+
     @RequestMapping(method = RequestMethod.GET,value="login")
     public ModelAndView viewLoginPage(HttpServletRequest request) throws UnknownHostException {
         String clientIpAddress=request.getHeader("X-FORWARDED-FOR");
@@ -34,35 +36,37 @@ public class LoginPageController{
         if ("127.0.0.1".equals(clientIpAddress))
             clientIpAddress= InetAddress.getLocalHost().getHostAddress();
        if (ipDao.findIP(clientIpAddress))
-            return new ModelAndView("user_login");
+            return new ModelAndView("login_site");
        return new ModelAndView("ip_error");
     }
-    @RequestMapping(method = RequestMethod.POST)
+    @RequestMapping(method = RequestMethod.POST,value = "login")
     public ModelAndView loginAction(Model model, @RequestParam(name = "username",required=true)String username,
                                     @RequestParam(name="password",required = true)String password,
-                                    @RequestParam(name="ip",required=true)String ip){
+                                    HttpServletRequest request) throws UnknownHostException {
         try {
-            long currrentUserId=userDao.loginUser(username,password,ip);
-            ModelAndView modelAndView=new ModelAndView("action_page");
+            clientIp =request.getHeader("X-FORWARDED-FOR");
+            if (clientIp==null)
+                clientIp=request.getRemoteAddr();
+            if ("127.0.0.1".equals(clientIp) || "0:0:0:0:0:0:0:1".equals(clientIp))
+                clientIp=InetAddress.getLocalHost().getHostAddress();
+            long currrentUserId=userDao.loginUser(username,password,clientIp);
+            ModelAndView modelAndView=new ModelAndView("redirect:/actions");
             modelAndView.addObject("userId",currrentUserId);
             return modelAndView;
         } catch (IpNotFoundException e) {
             e.printStackTrace();
             model.addAttribute("error", Errors.IP_NOT_FOUND);
-            return new ModelAndView("user_login");
+            return new ModelAndView("login_site");
 
-        } catch (UserOnlineException e) {
+        }  catch (UserNotFoundException e) {
             e.printStackTrace();
-            return new ModelAndView("user_login");
-        } catch (UserNotFoundException e) {
-            e.printStackTrace();
-            return new ModelAndView("user_login");
+            return new ModelAndView("login_site");
         } catch (BadCredentialException e) {
             e.printStackTrace();
-            return new ModelAndView("user_login");
-        } catch (UserBlockeException e) {
+            return new ModelAndView("login_site");
+        } catch (UserBlockedException e) {
             e.printStackTrace();
-            return new ModelAndView("user_login");
+            return new ModelAndView("login_site");
         }
 
     }

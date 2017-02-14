@@ -21,6 +21,7 @@ public class Action {
         final String LOGIN="logowanie";
         final String LOGOUT="wylogowywanie";
         final String REGISTRATION="rejestracja";
+        final String REGISTRATION_END="dokończenie rejestracji";
         final String PASSWORD_CHANGE="zmiana hasłą";
         final String BAD_LOGIN_ATTEMPT="próba logowania się";
         final String BLOCK="blokada konta";

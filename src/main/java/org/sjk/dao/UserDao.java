@@ -62,7 +62,7 @@ public class UserDao {
                 "u_status_rejestracji, u_status, u_imie, u_nazwisko, u_adres," +
                 "u_telefon,u_online,u_email) values(?,?,?,?,?,?,?,?,?);";
         jdbcTemplate.update(userInsertScript,new Object[]{
-                user.getUserName(),user.getRegistrationStatus(),
+                user.getUserName(), User.RegistrationStatuses.PENDING,
                 user.getUserStatus(),user.getFirstName(),user.getLastName(),
                 user.getAddress(), user.getPhone(),user.getEmail()
         });
@@ -79,6 +79,17 @@ public class UserDao {
         passwordDao.updatePassword(userId,passwordId);
         actionDao.insertAction(Action.ActionTypes.REGISTRATION,new Timestamp(System.currentTimeMillis()),userId,ipId);
         return userId;
+    }
+
+    public void registerUser(String username,String password, String ip){
+        String userRegisterScript="update Uzytkownicy set u_status_rejestracji=? where u_nazwa_uzytkownika=?;";
+        jdbcTemplate.update(userRegisterScript,new Object[]{User.RegistrationStatuses.REGISTERED,username});
+        String updatePasswordScript="update Hasla set h_haslo=? where h_u_id=(select u_id from Uzytkownicy where u_nazwa_uzytkownika=?);";
+        jdbcTemplate.update(updatePasswordScript,new Object[]{password,username});
+        long ipId=jdbcTemplate.queryForObject("select i_id from IP where i_numer=?",new Object[]{ip},Long.class);
+        long userId=jdbcTemplate.queryForObject("select u_id from Uzytkownicy where u_nazwa_uzytkownika=?",
+                new Object[]{username},Long.class);
+        actionDao.insertAction(Action.ActionTypes.REGISTRATION_END,new Timestamp(System.currentTimeMillis()),userId,ipId);
     }
 
     public boolean findUserByUsername(String username){
@@ -245,6 +256,7 @@ public class UserDao {
             InetAddress ip=InetAddress.getLocalHost();
             long ipId=ipDao.findIPId(ip.getHostAddress());passwordDao.updatePassword(userId,passwordId);
             actionDao.insertAction(Action.ActionTypes.REGISTRATION,new Timestamp(System.currentTimeMillis()),userId,ipId);
+            registerUser("admin","admin",ip.getHostAddress());
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
