@@ -2,7 +2,6 @@ package org.sjk.controller;
 
 import org.sjk.dao.IpDao;
 import org.sjk.dao.UserDao;
-import org.sjk.dto.User;
 import org.sjk.error.Errors;
 import org.sjk.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,35 +26,15 @@ public class LoginPageController{
     @Autowired
     private IpDao ipDao;
 
-    @RequestMapping(method = RequestMethod.GET,value="/")
-    public ModelAndView viewLoginForm(HttpServletRequest request){
-        return  new ModelAndView("login_site");
-    }
-
     @RequestMapping(method = RequestMethod.GET,value="login")
-    public ModelAndView viewLoginPage(HttpServletRequest request,
-                                      @RequestParam String name) throws UnknownHostException {
+    public ModelAndView viewLoginPage(HttpServletRequest request) throws UnknownHostException {
         String clientIpAddress=request.getHeader("X-FORWARDED-FOR");
         if (clientIpAddress==null)
             clientIpAddress=request.getRemoteAddr();
-        if ("0:0:0:0:0:0:0:1".equals(clientIpAddress)||"127.0.0.1".equals(clientIpAddress))
+        if ("127.0.0.1".equals(clientIpAddress))
             clientIpAddress= InetAddress.getLocalHost().getHostAddress();
-       if (ipDao.findIP(clientIpAddress)) {
-           ModelAndView user_login = new ModelAndView("user_login");
-           ModelAndView ip_error = new ModelAndView("ip_error");
-           String message;
-           User user = new User();
-           if (userDao.findUserByUsername(name) == true){
-               message = "Hello " + name + "!";
-               user_login.addObject("message", message);
-               return user_login;
-           }else{
-               message = "U are not logged in!";
-               ip_error.addObject("message", message);
-               return ip_error;
-           }
-
-       }
+       if (ipDao.findIP(clientIpAddress))
+            return new ModelAndView("user_login");
        return new ModelAndView("ip_error");
     }
     @RequestMapping(method = RequestMethod.POST)

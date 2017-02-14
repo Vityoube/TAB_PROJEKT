@@ -47,13 +47,11 @@ public class UserDao {
                 "u_email varchar(50) not null," +
                 "u_czas_blokady timestamp" +
                 ");";
-        System.out.println("\n"+initUserScript.toUpperCase()+"\n");
         jdbcTemplate.execute(initUserScript);
     }
 
     public void updateRelations() {
         String updateUserTableScript="alter table Uzytkownicy add foreign key (u_h_id) references Hasla(h_id);";
-        System.out.println("\n"+updateUserTableScript.toUpperCase()+"\n");
         jdbcTemplate.execute(updateUserTableScript);
     }
 
@@ -63,7 +61,6 @@ public class UserDao {
         String userInsertScript="insert into Uzytkownicy(u_nazwa_uzytkownika," +
                 "u_status_rejestracji, u_status, u_imie, u_nazwisko, u_adres," +
                 "u_telefon,u_online,u_email) values(?,?,?,?,?,?,?,?,?);";
-        System.out.println("\n"+userInsertScript.toUpperCase()+"\n");
         jdbcTemplate.update(userInsertScript,new Object[]{
                 user.getUserName(),user.getRegistrationStatus(),
                 user.getUserStatus(),user.getFirstName(),user.getLastName(),
@@ -72,11 +69,9 @@ public class UserDao {
         long passwordId=passwordDao.insertPassword(password);
         String updateUserScript="update Uzytkownicy set u_h_id="+passwordId+
                 " where u_nazwa_uzytkownika=?;";
-        System.out.println("\n"+updateUserScript.toUpperCase()+"\n");
         jdbcTemplate.update(updateUserScript,passwordId,user.getUserName());
         String userIdQuery="select u_id " +
                 "from Uzytkownicy where u_nazwa_uzytkownika=?";
-        System.out.println("\n"+userIdQuery.toUpperCase()+"\n");
         long userId=jdbcTemplate.queryForObject(userIdQuery,
                 new Object[]{user.getUserName()},Long.class);
 
@@ -90,7 +85,6 @@ public class UserDao {
         try {
             String userFindScript = "select * from Uzytkownicy " +
                     "where u_nazwa_uzytkownika=?";
-            System.out.println("\n" + userFindScript.toUpperCase() + "\n");
             User user = jdbcTemplate.queryForObject(userFindScript, new BeanPropertyRowMapper<User>(User.class), username);
             return true;
         } catch(EmptyResultDataAccessException e){
@@ -99,29 +93,25 @@ public class UserDao {
     }
 
     public long loginUser(String username,String password, String ip)
-            throws IpNotFoundException, UserOnlineException, UserNotFoundException, BadCredentialException, UserBlockeException {
+            throws IpNotFoundException, UserNotFoundException, BadCredentialException, UserBlockedException {
         if (!ipDao.findIP(ip))
             throw new IpNotFoundException();
-        if (isUserOnline(username))
-            throw new UserOnlineException();
         if (!findUserByUsername(username))
             throw new UserNotFoundException();
         if (!passwordDao.findPasswordOfUser(username, password)){
-            actionDao.insertAction(Action.ActionTypes.BAD_PASSWORD,new Timestamp(System.currentTimeMillis()),findUserId(username),
+            actionDao.insertAction(Action.ActionTypes.BAD_LOGIN_ATTEMPT,new Timestamp(System.currentTimeMillis()),findUserId(username),
                     ipDao.findIPId(ip));
             throw new BadCredentialException();
         }
         if (isUserBlocked(username,ip)){
-            actionDao.insertAction(Action.ActionTypes.BLOCK,new Timestamp(System.currentTimeMillis()),findUserId(username),ipDao.findIPId(ip));
-            throw new UserBlockeException();
+            actionDao.insertAction(Action.ActionTypes.BAD_LOGIN_ATTEMPT,new Timestamp(System.currentTimeMillis()),findUserId(username),ipDao.findIPId(ip));
+            throw new UserBlockedException();
         }
         String userLoginScript="update Uzytkownicy set u_online=true " +
                 "where u_nazwa_uzytkownika=?";
-        System.out.println("\n"+userLoginScript.toUpperCase()+"\n");
         jdbcTemplate.update(userLoginScript,new Object[]{username});
         String getCurrentUserIdScript="select u_id from Uzytkownicy " +
                 "where u_nazwa_uzytkownika=?";
-        System.out.println("\n"+getCurrentUserIdScript.toUpperCase()+"\n");
         long currentUserId=jdbcTemplate.queryForObject(getCurrentUserIdScript,
                 new Object[]{username},Long.class);
         actionDao.insertAction(Action.ActionTypes.LOGIN,new Timestamp(System.currentTimeMillis()),currentUserId,
@@ -131,7 +121,6 @@ public class UserDao {
 
     private long findUserId(String username) {
         String findUserIdScript="select u_id from Uzytkownicy where u_nazwa_uzytkownika=?";
-        System.out.println("\n"+findUserIdScript.toUpperCase()+"\n");
         long userId=jdbcTemplate.queryForObject(findUserIdScript,new Object[]{username},Long.class);
         return userId;
     }
@@ -140,7 +129,6 @@ public class UserDao {
     public void logoutUser(String username,String ip){
         String userLogoutScript="udpate Uzytkownicy set u_online=false " +
                 "where u_nazwa_uzytkownika=?";
-        System.out.println("\n"+userLogoutScript.toUpperCase()+"\n");
         jdbcTemplate.update(userLogoutScript,new Object[]{username});
         actionDao.insertAction(Action.ActionTypes.LOGOUT,new Timestamp(System.currentTimeMillis()),findUserId(username),
                 ipDao.findIPId(ip));
@@ -152,7 +140,6 @@ public class UserDao {
         passwordDao.changePassword(oldPassword,newPassword);
         String getCurrentUserIdScript="select u_id from Uzytkownicy " +
                 "where u_nazwa_uzytkownika=?";
-        System.out.println("\n"+getCurrentUserIdScript.toUpperCase()+"\n");
         long currentUserId=jdbcTemplate.queryForObject(getCurrentUserIdScript,
                 new Object[]{username},Long.class);
         actionDao.insertAction(Action.ActionTypes.PASSWORD_CHANGE,new Timestamp(System.currentTimeMillis()),currentUserId,
@@ -164,7 +151,6 @@ public class UserDao {
     public boolean isUserAdmin(long userId) {
         try {
             String findUserStatusScript = "select u_status from Uzytkownicy where u_id=?";
-            System.out.println("\n" + findUserStatusScript.toUpperCase() + "\n");
             String currentUserStatus =
                     jdbcTemplate.queryForObject(findUserStatusScript,
                             new Object[]{userId}, String.class);
@@ -177,7 +163,6 @@ public class UserDao {
     public boolean isUserRegistered(long userId){
         try {
             String findUserRegisterStatusScript = "select u_status_rejestracji from Uzytkownicy where u_id=?";
-            System.out.println("\n" + findUserRegisterStatusScript.toUpperCase() + "\n");
             String currentUserRegisterStatus =
                     jdbcTemplate.queryForObject(findUserRegisterStatusScript,
                             new Object[]{userId}, String.class);
@@ -187,36 +172,23 @@ public class UserDao {
         }
     }
 
-    public boolean isUserOnline(String username){
-        try {
-            String findUserOnlineStatusScript = "select u_online from Uzytkownicy where u_nazwa_uzytkownika=?;";
-            System.out.println("\n" + findUserOnlineStatusScript.toUpperCase() + "\n");
-            boolean userOnline = jdbcTemplate.queryForObject(findUserOnlineStatusScript, new Object[]{username}, Boolean.class);
-            return userOnline;
-        } catch(EmptyResultDataAccessException e){
-            return false;
-        }
-
-    }
-
-    public void BlockUser(String username, String ip){
-        String blockUserScript="update Uzytkownicy set u_status_rejestracji=? where u_nazwa_uzytkownika=?;\n" +
-                "update Uzytkownicy set u_czas_blokady=? where u_nazwa_uzytkownika=?;";
-        System.out.println("\n"+blockUserScript.toUpperCase()+"\n");
-        jdbcTemplate.update(blockUserScript, new Object[]{User.RegistrationStatuses.BLOCKED,username,new Timestamp(System.currentTimeMillis()),
-                username});
-        actionDao.insertAction(Action.ActionTypes.BLOCK,new Timestamp(System.currentTimeMillis()),findUserId(username),ipDao.findIPId(ip));
+    public void blockUser(String username, String ip){
+        String blockUserScript="update Uzytkownicy set u_status_rejestracji=? where u_nazwa_uzytkownika=?;";
+        Timestamp blockTime=new Timestamp(System.currentTimeMillis());
+        jdbcTemplate.update(blockUserScript, new Object[]{User.RegistrationStatuses.BLOCKED,username});
+        String setBlockTimeScript="update Uzytkownicy set u_czas_blokady=? where u_nazwa_uzytkownika=?;";
+        jdbcTemplate.update(setBlockTimeScript, new Object[]{blockTime,username});
+        actionDao.insertAction(Action.ActionTypes.BLOCK,blockTime,findUserId(username),ipDao.findIPId(ip));
     }
 
     public boolean isUserBlocked(String username,String ip){
         String findUserRegisterStatusScript="select u_status_rejestracji from Uzytkownicy where u_nazwa_uzytkownika=?;";
-        System.out.println("\n"+findUserRegisterStatusScript.toUpperCase()+"\n");
         try {
             String currentUserRegisterStatus =
                     jdbcTemplate.queryForObject(findUserRegisterStatusScript,
                             new Object[]{username}, String.class);
             if (User.RegistrationStatuses.BLOCKED.equals(currentUserRegisterStatus)) {
-                if (new Timestamp(System.currentTimeMillis()).getTime() - getUserBlockTime(username) >= 30 * 10000) {
+                if (new Timestamp(System.currentTimeMillis()).getTime() - getUserBlockTime(username) >= 30 * 1000) {
                     unblockUser(username, ip);
                     return false;
                 }
@@ -230,10 +202,12 @@ public class UserDao {
     }
 
     private void unblockUser(String username,String ip) {
-        String unblockUserScript="update Uzytkownicy set u_status_rejestracji=? where u_nazwa_uzytkownika=?;\n" +
-                "update Uzytkownicy set u_czas_blokady=? where u_nazwa_uzytkownika=?;";
-        jdbcTemplate.update(unblockUserScript,new Object[]{username});
-        actionDao.insertAction(Action.ActionTypes.UNBLOCK,new Timestamp(System.currentTimeMillis()),findUserId(username),ipDao.findIPId(ip));
+        String unblockUserScript="update Uzytkownicy set u_status_rejestracji=? where u_nazwa_uzytkownika=?;";
+        jdbcTemplate.update(unblockUserScript,new Object[]{User.RegistrationStatuses.REGISTERED,username});
+        Timestamp blockTime=new Timestamp(System.currentTimeMillis());
+        String setUnblockUserTime="update Uzytkownicy set u_czas_blokady=null where u_nazwa_uzytkownika=?;";
+        jdbcTemplate.update(setUnblockUserTime,new Object[]{username});
+        actionDao.insertAction(Action.ActionTypes.UNBLOCK,blockTime,findUserId(username),ipDao.findIPId(ip));
     }
 
     private long getUserBlockTime(String username) {
@@ -254,7 +228,6 @@ public class UserDao {
         String userInsertScript="insert into Uzytkownicy(u_nazwa_uzytkownika," +
                 "u_status_rejestracji, u_status, u_imie, u_nazwisko, u_adres," +
                 "u_telefon,u_online,u_email) values(?,?,?,?,?,?,?,?,?);";
-        System.out.println("\n"+userInsertScript.toUpperCase()+"\n");
         jdbcTemplate.update(userInsertScript,new Object[]{
                 admin.getUserName(),admin.getRegistrationStatus(),
                 admin.getUserStatus(),admin.getFirstName(),admin.getLastName(),
@@ -263,11 +236,9 @@ public class UserDao {
         long passwordId=passwordDao.insertPassword("admin");
         String updateUserScript="update Uzytkownicy set u_h_id=?"+
                 " where u_nazwa_uzytkownika=?;";
-        System.out.println("\n"+updateUserScript.toUpperCase()+"\n");
         jdbcTemplate.update(updateUserScript,new Object[]{passwordId,admin.getUserName()});
         String userIdQuery="select u_id " +
                 "from Uzytkownicy where u_nazwa_uzytkownika=?";
-        System.out.println("\n"+userIdQuery.toUpperCase()+"\n");
         long userId=jdbcTemplate.queryForObject(userIdQuery,
                 new Object[]{admin.getUserName()},Long.class);
         try {
