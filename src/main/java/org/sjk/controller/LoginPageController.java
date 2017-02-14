@@ -27,16 +27,18 @@ public class LoginPageController{
     private IpDao ipDao;
 
     @RequestMapping(method = RequestMethod.GET,value="login")
-    public ModelAndView viewLoginPage(HttpServletRequest request) throws UnknownHostException {
+    public ModelAndView viewLoginPage(Model model,HttpServletRequest request) throws UnknownHostException {
         String clientIpAddress=request.getHeader("X-FORWARDED-FOR");
         if (clientIpAddress==null)
             clientIpAddress=request.getRemoteAddr();
-        if ("127.0.0.1".equals(clientIpAddress))
+        if ("127.0.0.1".equals(clientIpAddress) || "0:0:0:0:0:0:0:1".equals(clientIpAddress))
             clientIpAddress= InetAddress.getLocalHost().getHostAddress();
        if (ipDao.findIP(clientIpAddress))
             return new ModelAndView("user_login");
+       model.addAttribute("error",Errors.IP_NOT_FOUND.getErrorDescripton());
        return new ModelAndView("ip_error");
     }
+
     @RequestMapping(method = RequestMethod.POST)
     public ModelAndView loginAction(Model model, @RequestParam(name = "username",required=true)String username,
                                     @RequestParam(name="password",required = true)String password,
@@ -48,14 +50,16 @@ public class LoginPageController{
             return modelAndView;
         } catch (IpNotFoundException e) {
             e.printStackTrace();
-            model.addAttribute("error", Errors.IP_NOT_FOUND);
-            return new ModelAndView("user_login");
+            model.addAttribute("error", Errors.IP_NOT_FOUND.getErrorDescripton());
+            return new ModelAndView("ip_error");
 
         } catch (UserOnlineException e) {
             e.printStackTrace();
+            model.addAttribute("error", Errors.USER_ONLINE.getErrorDescripton());
             return new ModelAndView("user_login");
         } catch (UserNotFoundException e) {
             e.printStackTrace();
+            model.addAttribute("error",Errors.USER_NOT_FOUND.getErrorDescripton());
             return new ModelAndView("user_login");
         } catch (BadCredentialException e) {
             e.printStackTrace();

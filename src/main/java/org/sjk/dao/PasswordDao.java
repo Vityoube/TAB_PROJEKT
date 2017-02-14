@@ -27,29 +27,24 @@ public class PasswordDao {
                 "h_id bigint not null auto_increment primary key, " +
                 "h_haslo varchar(20) UNIQUE not null, " +
                 "h_u_id bigint);";
-        System.out.println("\n"+initTableScript.toUpperCase()+"\n");
         jdbcTemplate.execute(initTableScript);
     }
 
     public void updateRelations() {
         String updatePasswordTableScript="alter table Hasla add foreign key (h_u_id) references Uzytkownicy(u_id);";
-        System.out.println("\n"+updatePasswordTableScript.toUpperCase()+"\n");
         jdbcTemplate.execute(updatePasswordTableScript);
     }
 
     public long insertPassword(String password) {
-        String passwordInsertScript="insert into Hasla (h_haslo) values(?)";
-        System.out.println("\n"+passwordInsertScript.toUpperCase()+"\n");
-        jdbcTemplate.update(passwordInsertScript,password);
-        String passwordIdSelect="select h_id from Hasla where h_haslo=?";
-        System.out.println("\n"+passwordIdSelect.toUpperCase()+"\n");
-        Long passwordId = jdbcTemplate.queryForObject(passwordIdSelect, new Object[]{password}, Long.class);
+        String passwordInsertScript="insert into Hasla (h_haslo) values(\'"+password+"\')";
+        jdbcTemplate.update(passwordInsertScript);
+        String passwordIdSelect="select h_id from Hasla where h_haslo=\'"+password+"\';";
+        Long passwordId = jdbcTemplate.queryForObject(passwordIdSelect,Long.class);
         return passwordId;
     }
 
     public void updatePassword(long userId, long passwordId) {
         String passwordUpdateUserId="update Hasla set h_u_id=? where h_id=?";
-        System.out.println("\n"+passwordUpdateUserId.toUpperCase()+"\n");
         jdbcTemplate.update(passwordUpdateUserId,userId,passwordId);
     }
 
@@ -57,18 +52,16 @@ public class PasswordDao {
             throws PasswordNotFoundException {
         if (!findOldPassword(oldPassword))
             throw new PasswordNotFoundException();
-        String updatePasswordScript="update Hasla set h_haslo=?" +
-                " where h_halso=?;";
-        System.out.println("\n"+updatePasswordScript.toUpperCase()+"\n");
-        jdbcTemplate.update(updatePasswordScript,new Object[]{newPassword,oldPassword});
+        String updatePasswordScript="update Hasla set h_haslo=\'"+newPassword+"\'" +
+                " where h_halso=\'"+oldPassword+"\';";
+        jdbcTemplate.update(updatePasswordScript);
     }
 
     public boolean findOldPassword(String oldPassword){
         try {
-            String findOldPasswordScript = "select * from Hasla where h_haslo=?";
-            System.out.println("\n" + findOldPasswordScript.toUpperCase() + "\n");
+            String findOldPasswordScript = "select * from Hasla where h_haslo=\'"+oldPassword+"\'";
             Password password = jdbcTemplate.queryForObject(findOldPasswordScript,
-                    new BeanPropertyRowMapper<Password>(Password.class), oldPassword);
+                    new BeanPropertyRowMapper<Password>(Password.class));
             return true;
         } catch (EmptyResultDataAccessException e){
             return false;
@@ -77,11 +70,10 @@ public class PasswordDao {
 
     public boolean findPasswordOfUser(String username, String passwordText){
         try {
-            String findPasswordOfUserScript = "select * from Hasla where h_haslo=? and h_u_id=" +
-                    "(select u_id from Uzytkownicy where u_nazwa_uzytkownika=?);";
-            System.out.println("\n" + findPasswordOfUserScript.toUpperCase() + "\n");
+            String findPasswordOfUserScript = "select * from Hasla where h_haslo=\'"+passwordText+"\' and h_u_id=" +
+                    "(select u_id from Uzytkownicy where u_nazwa_uzytkownika=\'"+username+"\');";
             Password password = jdbcTemplate.queryForObject(findPasswordOfUserScript,
-                    new BeanPropertyRowMapper<Password>(Password.class), new Object[]{passwordText, username});
+                    new BeanPropertyRowMapper<Password>(Password.class));
             return true;
         } catch(EmptyResultDataAccessException e){
             return false;
@@ -89,10 +81,9 @@ public class PasswordDao {
     }
     public boolean findPassword(String passwordText){
         try {
-            String findPasswordScript = "select * from Hasla where h_haslo=?";
-            System.out.println("\n" + findPasswordScript.toUpperCase() + "\n");
+            String findPasswordScript = "select * from Hasla where h_haslo=\'"+passwordText+"\'";
             Password password = jdbcTemplate.queryForObject(findPasswordScript,
-                    new BeanPropertyRowMapper<Password>(Password.class), new Object[]{passwordText});
+                    new BeanPropertyRowMapper<Password>(Password.class));
             return true;
         } catch(EmptyResultDataAccessException e){
             return false;

@@ -18,4 +18,8 @@ public enum Errors {
     Errors(String errorDescription) {
         this.errorDescripton=errorDescription;
     }
+
+    public String getErrorDescripton() {
+        return errorDescripton;
+    }
 }

@@ -11,6 +11,6 @@
     <title>Title</title>
 </head>
 <body>
-    <h1>Forbidden</h1>
+    <h3>${error}</h3>
 </body>
 </html>

@@ -29,16 +29,13 @@ public class IpDao {
     public void initTable(){
         String initTableScript="create table if not EXISTS IP (i_id bigint not null auto_increment primary key," +
                 "i_numer varchar(15) UNIQUE not null);";
-        System.out.println("\n"+initTableScript.toUpperCase()+"\n");
         jdbcTemplate.execute(initTableScript);
     }
 
     public boolean findIP(String ipNumber) {
         try {
-            String findIpScript = "select i_numer from IP where i_numer=?";
-            System.out.println("\n" + findIpScript.toUpperCase() + "\n");
-            String ip = jdbcTemplate.queryForObject(findIpScript,
-                    new Object[]{ipNumber},String.class);
+            String findIpScript = "select i_numer from IP where i_numer=\'"+ipNumber+"\'";
+            String ip = jdbcTemplate.queryForObject(findIpScript,String.class);
             return true;
         } catch (EmptyResultDataAccessException e){
             return false;
@@ -50,11 +47,9 @@ public class IpDao {
         try {
             if (!userDao.isUserAdmin(userId))
                 throw new UnsufficientPrivilegeExeption();
-            String insertIpScript = "insert into IP(i_numer) values(?);";
-            System.out.println("\n" + insertIpScript.toUpperCase() + "\n");
-            jdbcTemplate.update(insertIpScript, ipNumber);
-            String selectIpIdScript = "select i_id from IP where i_numer=?";
-            System.out.println("\n" + selectIpIdScript.toUpperCase() + "\n");
+            String insertIpScript = "insert into IP(i_numer) values('"+ipNumber+"\');";
+            jdbcTemplate.update(insertIpScript);
+            String selectIpIdScript = "select i_id from IP where i_numer=\''"+ipNumber+"\';";
             long ipId = jdbcTemplate.queryForObject(selectIpIdScript,
                     new Object[]{ipNumber}, Long.class);
             return ipId;
@@ -65,9 +60,8 @@ public class IpDao {
 
     public long findIPId(String ipNumber){
         try {
-            String findIpScript = "select i_id from IP where i_numer=?";
-            System.out.println("\n" + findIpScript.toUpperCase() + "\n");
-            long ipId = jdbcTemplate.queryForObject(findIpScript, new Object[]{ipNumber}, Long.class);
+            String findIpScript = "select i_id from IP where i_numer=\'"+ipNumber+"\';";
+            long ipId = jdbcTemplate.queryForObject(findIpScript, Long.class);
             return ipId;
         } catch(EmptyResultDataAccessException e){
             return -1;
@@ -80,10 +74,9 @@ public class IpDao {
         try {
             ip=InetAddress.getLocalHost();
             String serverIpNumber=ip.getHostAddress();
-            System.out.println("Server ip: "+ip);
-            String insertIpScript = "insert into IP(i_numer) values(?);";
-            System.out.println("\n" + insertIpScript.toUpperCase() + "\n");
-            jdbcTemplate.update(insertIpScript,serverIpNumber);
+            String insertIpScript = "insert into IP(i_numer) values(\'" +serverIpNumber+
+                    "\');";
+            jdbcTemplate.update(insertIpScript);
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
