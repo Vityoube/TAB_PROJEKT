@@ -4,6 +4,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
 
 import javax.validation.constraints.Pattern;
 import java.sql.Timestamp;
@@ -16,6 +18,8 @@ import java.util.Date;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Component
+@Scope("session")
 public class User {
     public interface RegistrationStatuses{
         final String PENDING="w_trakcie";

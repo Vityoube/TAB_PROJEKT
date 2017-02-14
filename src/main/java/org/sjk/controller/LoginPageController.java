@@ -6,8 +6,10 @@ import org.sjk.dto.User;
 import org.sjk.error.Errors;
 import org.sjk.exception.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -23,6 +25,7 @@ import java.net.UnknownHostException;
  * Created by vkalashnykov on 12.02.17.
  */
 @Controller
+@Scope("session")
 public class LoginPageController{
     @Autowired
     private UserDao userDao;
@@ -30,57 +33,65 @@ public class LoginPageController{
     private IpDao ipDao;
 
     private String clientIp;
+    @Autowired
+    private User currentUser;
 
     @RequestMapping(method = RequestMethod.GET,value="login")
-    public ModelAndView viewLoginPage(HttpServletRequest request) throws UnknownHostException {
+    public ModelAndView viewLoginPage(HttpServletRequest request, Model model) throws UnknownHostException {
         String clientIpAddress=request.getHeader("X-FORWARDED-FOR");
         if (clientIpAddress==null)
             clientIpAddress=request.getRemoteAddr();
-        if ("127.0.0.1".equals(clientIpAddress)|| "0:0:0:0:0:0:0:1".equals(clientIpAddress))
+        if ("127.0.0.1".equals(clientIpAddress)  || "0:0:0:0:0:0:0:1".equals(clientIpAddress) )
             clientIpAddress= InetAddress.getLocalHost().getHostAddress();
-       if (ipDao.findIP(clientIpAddress))
-            return new ModelAndView("login_site");
+       if (ipDao.findIP(clientIpAddress)){
+           if (currentUser!=null && userDao.isUserOnline(currentUser)) {
+               return new ModelAndView("redirect:/actions");
+           }
+           return new ModelAndView("login_site");
+       }
+
        return new ModelAndView("ip_error");
     }
     @RequestMapping(method = RequestMethod.POST,value = "login")
     public ModelAndView loginAction(Model model, @RequestParam(name = "username",required=true)String username,
                                     @RequestParam(name="password",required = true)String password,
-                                    HttpServletRequest request,
-                                    @ModelAttribute("user") User currentUser,
-                                    RedirectAttributes redirectAttributes) throws UnknownHostException {
+                                    HttpServletRequest request) throws UnknownHostException {
         try {
             clientIp =request.getHeader("X-FORWARDED-FOR");
             if (clientIp==null)
                 clientIp=request.getRemoteAddr();
-            if ("127.0.0.1".equals(clientIp)|| "0:0:0:0:0:0:0:1".equals(clientIp))
+            if ("127.0.0.1".equals(clientIp) || "0:0:0:0:0:0:0:1".equals(clientIp))
                 clientIp=InetAddress.getLocalHost().getHostAddress();
             long currentUserId=userDao.loginUser(username,password,clientIp);
             currentUser=userDao.findUserById(currentUserId);
-            setCurrentUser(currentUser);
-            redirectAttributes.addFlashAttribute("user",currentUser);
+            request.getSession().setAttribute("currentUser",currentUser);
             ModelAndView modelAndView=new ModelAndView("redirect:/actions");
             return modelAndView;
         } catch (IpNotFoundException e) {
-            e.printStackTrace();
             model.addAttribute("error", Errors.IP_NOT_FOUND.getErrorDescripton());
             return new ModelAndView("login_site");
 
         }  catch (UserNotFoundException e) {
-            e.printStackTrace();
+            model.addAttribute("error", Errors.USER_NOT_FOUND.getErrorDescripton());
             return new ModelAndView("login_site");
         } catch (BadCredentialException e) {
-            e.printStackTrace();
+            model.addAttribute("error", Errors.BAD_CREDENTIALS.getErrorDescripton());
             return new ModelAndView("login_site");
         } catch (UserBlockedException e) {
-            e.printStackTrace();
+            model.addAttribute("error", Errors.USER_BLOCKED.getErrorDescripton());
             return new ModelAndView("login_site");
         }
     }
 
-    @ModelAttribute("user")
-    public User setCurrentUser(User currentUser){
-        return currentUser;
+    @RequestMapping(method = RequestMethod.GET)
+    public ModelAndView start(HttpServletRequest request){
+            currentUser=(User)request.getSession().getAttribute("currentUser");
+            if (currentUser!=null && userDao.isUserOnline(currentUser))
+                return new ModelAndView("redirect:/actions");
+            return new ModelAndView("redirect:/login");
     }
+
+
 
 
 
