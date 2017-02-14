@@ -11,17 +11,26 @@
 <head>
     <title>Akcje</title>
 </head>
-<body>
-    <h1>Akcje</h1>
-    <table>
-        <c:forEach items="${actions}" var="action">
+<body style="text-align: center">
+    <h1>Akcje użytkownika:</h1>
+    <input type="submit" value="zmiana hasła">
+    <input type="submit" value="wyloguj">
+    <table align="center" style="border: solid 1px">
             <tr>
-                <td>${action.name}</td>
-                <td>${action.actionTime}</td>
-                <td>${action.ipAdress}</td>
+                <th style="border: solid 1px">Typ akcji</th>
+                <th style="border: solid 1px">Czas</th>
+                <th style="border: solid 1px">Adres IP</th>
+            </tr>
+        <c:forEach items="${actions}" var="action">
+            <tr >
+                <td style="border: solid 1px">${action.name}</td>
+                <td style="border: solid 1px">${action.actionTime}</td>
+                <td style="border: solid 1px">${action.ipAdress}</td>
             </tr>
         </c:forEach>
     </table>
+    <br>
+    <input type="submit" value="czyść liste">
 
 </body>
 </html>

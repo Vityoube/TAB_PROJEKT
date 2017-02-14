@@ -10,11 +10,18 @@
 <head>
     <title>Login</title>
 </head>
-<body>
+<body  style="text-align: center">
+    <h1>Logowanie</h1>
+    <p style="color: red"> ${error} </p>
     <form method="post">
-        <input type="text" name="username"/>
-        <input type="password" name="password"/>
+        Login: <input type="text" name="username"/>
+        <br>
+        <br>
+        Hasło: <input type="password" name="password"/>
+        <br>
+        <br>
         <input type="submit" value="zaloguj" formaction="login"/>
+        <input type="submit" value="zarejstruj" formaction="login"/>
     </form>
 
 </body>

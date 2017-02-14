@@ -36,7 +36,7 @@ public class LoginPageController{
         String clientIpAddress=request.getHeader("X-FORWARDED-FOR");
         if (clientIpAddress==null)
             clientIpAddress=request.getRemoteAddr();
-        if ("127.0.0.1".equals(clientIpAddress))
+        if ("127.0.0.1".equals(clientIpAddress)|| "0:0:0:0:0:0:0:1".equals(clientIpAddress))
             clientIpAddress= InetAddress.getLocalHost().getHostAddress();
        if (ipDao.findIP(clientIpAddress))
             return new ModelAndView("login_site");
@@ -52,7 +52,7 @@ public class LoginPageController{
             clientIp =request.getHeader("X-FORWARDED-FOR");
             if (clientIp==null)
                 clientIp=request.getRemoteAddr();
-            if ("127.0.0.1".equals(clientIp) || "0:0:0:0:0:0:0:1".equals(clientIp))
+            if ("127.0.0.1".equals(clientIp)|| "0:0:0:0:0:0:0:1".equals(clientIp))
                 clientIp=InetAddress.getLocalHost().getHostAddress();
             long currentUserId=userDao.loginUser(username,password,clientIp);
             currentUser=userDao.findUserById(currentUserId);
@@ -62,7 +62,7 @@ public class LoginPageController{
             return modelAndView;
         } catch (IpNotFoundException e) {
             e.printStackTrace();
-            model.addAttribute("error", Errors.IP_NOT_FOUND);
+            model.addAttribute("error", Errors.IP_NOT_FOUND.getErrorDescripton());
             return new ModelAndView("login_site");
 
         }  catch (UserNotFoundException e) {
