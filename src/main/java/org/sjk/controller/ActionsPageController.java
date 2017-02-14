@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -29,4 +30,12 @@ public class ActionsPageController {
         model.addAttribute("actions",userActions);
         return new ModelAndView("actions_page");
     }
+    @RequestMapping(value="actionsRemove",method = RequestMethod.POST)
+    public ModelAndView removeActions(@ModelAttribute("user") User currentUser,BindingResult bindingResult, Model model){
+        actionDao.removeActionsForUser(currentUser.getId());
+        List<Action> userActions=actionDao.findAllActions(currentUser.getId());
+        model.asMap().replace("actions",userActions);
+        return new ModelAndView("actions_page");
+    }
+
 }
