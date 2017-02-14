@@ -36,10 +36,10 @@ public class PasswordDao {
     }
 
     public long insertPassword(String password) {
-        String passwordInsertScript="insert into Hasla (h_haslo) values(\'"+password+"\')";
-        jdbcTemplate.update(passwordInsertScript);
-        String passwordIdSelect="select h_id from Hasla where h_haslo=\'"+password+"\';";
-        Long passwordId = jdbcTemplate.queryForObject(passwordIdSelect,Long.class);
+        String passwordInsertScript="insert into Hasla (h_haslo) values(?)";
+        jdbcTemplate.update(passwordInsertScript,password);
+        String passwordIdSelect="select h_id from Hasla where h_haslo=?";
+        Long passwordId = jdbcTemplate.queryForObject(passwordIdSelect, new Object[]{password}, Long.class);
         return passwordId;
     }
 
@@ -52,16 +52,16 @@ public class PasswordDao {
             throws PasswordNotFoundException {
         if (!findOldPassword(oldPassword))
             throw new PasswordNotFoundException();
-        String updatePasswordScript="update Hasla set h_haslo=\'"+newPassword+"\'" +
-                " where h_halso=\'"+oldPassword+"\';";
-        jdbcTemplate.update(updatePasswordScript);
+        String updatePasswordScript="update Hasla set h_haslo=?" +
+                " where h_halso=?;";
+        jdbcTemplate.update(updatePasswordScript,new Object[]{newPassword,oldPassword});
     }
 
     public boolean findOldPassword(String oldPassword){
         try {
-            String findOldPasswordScript = "select * from Hasla where h_haslo=\'"+oldPassword+"\'";
+            String findOldPasswordScript = "select * from Hasla where h_haslo=?";
             Password password = jdbcTemplate.queryForObject(findOldPasswordScript,
-                    new BeanPropertyRowMapper<Password>(Password.class));
+                    new BeanPropertyRowMapper<Password>(Password.class), oldPassword);
             return true;
         } catch (EmptyResultDataAccessException e){
             return false;
@@ -70,10 +70,10 @@ public class PasswordDao {
 
     public boolean findPasswordOfUser(String username, String passwordText){
         try {
-            String findPasswordOfUserScript = "select * from Hasla where h_haslo=\'"+passwordText+"\' and h_u_id=" +
-                    "(select u_id from Uzytkownicy where u_nazwa_uzytkownika=\'"+username+"\');";
+            String findPasswordOfUserScript = "select * from Hasla where h_haslo=? and h_u_id=" +
+                    "(select u_id from Uzytkownicy where u_nazwa_uzytkownika=?);";
             Password password = jdbcTemplate.queryForObject(findPasswordOfUserScript,
-                    new BeanPropertyRowMapper<Password>(Password.class));
+                    new BeanPropertyRowMapper<Password>(Password.class), new Object[]{passwordText, username});
             return true;
         } catch(EmptyResultDataAccessException e){
             return false;
@@ -81,9 +81,9 @@ public class PasswordDao {
     }
     public boolean findPassword(String passwordText){
         try {
-            String findPasswordScript = "select * from Hasla where h_haslo=\'"+passwordText+"\'";
+            String findPasswordScript = "select * from Hasla where h_haslo=?";
             Password password = jdbcTemplate.queryForObject(findPasswordScript,
-                    new BeanPropertyRowMapper<Password>(Password.class));
+                    new BeanPropertyRowMapper<Password>(Password.class), new Object[]{passwordText});
             return true;
         } catch(EmptyResultDataAccessException e){
             return false;

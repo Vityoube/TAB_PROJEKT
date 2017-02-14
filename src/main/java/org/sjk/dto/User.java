@@ -5,10 +5,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.persistence.*;
-import javax.validation.constraints.Max;
-import javax.validation.constraints.Min;
 import javax.validation.constraints.Pattern;
+import java.sql.Timestamp;
+import java.util.Date;
 
 /**
  * Created by vkalashnykov on 08.02.17.
@@ -40,4 +39,5 @@ public class User {
     private String registrationStatus;
     private String userStatus;
     private boolean online;
+    private Timestamp blockTime;
 }
