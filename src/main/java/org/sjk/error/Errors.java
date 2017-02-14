@@ -11,6 +11,8 @@ public enum Errors {
     BAD_CREDENTIALS("Niepoprawne hasłó"),
     PASSWORD_EXISTS("To hasło juz zajęte."),
     USER_EXISTS("Nazwa użytkownika zajęta, proszę sprobować inną."),
+    USERNAME_NOT_NULL("Nazwa użytkownika nie moze byc pusta."),
+    EMAIL_NOT_NULL("Email nie może być pusty."),
     USER_BLOCKED("Bład podczas próby logowania sie. Proszę sprobować później.");
 
 

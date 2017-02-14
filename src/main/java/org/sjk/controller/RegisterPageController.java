@@ -51,6 +51,11 @@ public class RegisterPageController {
                                      @RequestParam(name="address",required = false)String address,
                                      Model model,HttpServletRequest request) throws UnknownHostException {
 //        SecureRandom random=new SecureRandom();
+        String inputError="";
+        if (username==null || "".equals(username))
+            inputError+=Errors.USERNAME_NOT_NULL.getErrorDescripton()+"\n";
+        if (email==null || "".equals(email))
+            inputError+=Errors.EMAIL_NOT_NULL.getErrorDescripton()+"\n";
         String generatedPassword= RandomStringUtils.random(8,true,true);
         User user=User.builder().userName(username).email(email).registrationStatus(User.RegistrationStatuses.PENDING)
                 .userStatus(User.UserStatuses.USER).firstName(firstName).lastName(lastName).phone(phone)
@@ -60,16 +65,22 @@ public class RegisterPageController {
             clientIpAddress=request.getRemoteAddr();
         if ("127.0.0.1".equals(clientIpAddress)  || "0:0:0:0:0:0:0:1".equals(clientIpAddress) )
             clientIpAddress= InetAddress.getLocalHost().getHostAddress();
-        try {
-            userDao.insertUser(user,generatedPassword,clientIpAddress);
-        } catch (PasswordExistsException e) {
-            model.addAttribute("registerError", Errors.PASSWORD_EXISTS.getErrorDescripton());
+        if ("".equals(inputError)){
+            try {
+                userDao.insertUser(user,generatedPassword,clientIpAddress);
+            } catch (PasswordExistsException e) {
+                model.addAttribute("registerError", Errors.PASSWORD_EXISTS.getErrorDescripton());
+                return new ModelAndView("register_page");
+            } catch (UserExistsException e) {
+                model.addAttribute("registerError",Errors.USER_EXISTS.getErrorDescripton());
+            }
+            model.addAttribute("generatedPassword",generatedPassword);
             return new ModelAndView("register_page");
-        } catch (UserExistsException e) {
-            model.addAttribute("registerError",Errors.USER_EXISTS.getErrorDescripton());
+        } else {
+            model.addAttribute("registerError",inputError);
+            return new ModelAndView("register_page");
         }
-        model.addAttribute("generatedPassword",generatedPassword);
-        return new ModelAndView("register_page");
+
     }
 
 
