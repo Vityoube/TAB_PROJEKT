@@ -7,7 +7,6 @@ import org.sjk.error.Errors;
 import org.sjk.exception.PasswordExistsException;
 import org.sjk.exception.UserExistsException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.interceptor.KeyGenerator;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -17,11 +16,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
-import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.security.SecureRandom;
-import java.util.UUID;
 
 /**
  * Created by vkalashnykov on 13.02.17.
@@ -53,9 +49,9 @@ public class RegisterPageController {
 //        SecureRandom random=new SecureRandom();
         String inputError="";
         if (username==null || "".equals(username))
-            inputError+=Errors.USERNAME_NOT_NULL.getErrorDescripton()+"\n";
+            inputError+=Errors.USERNAME_NOT_NULL.getErrorDescription()+"\n";
         if (email==null || "".equals(email))
-            inputError+=Errors.EMAIL_NOT_NULL.getErrorDescripton()+"\n";
+            inputError+=Errors.EMAIL_NOT_NULL.getErrorDescription()+"\n";
         String generatedPassword= RandomStringUtils.random(8,true,true);
         User user=User.builder().userName(username).email(email).registrationStatus(User.RegistrationStatuses.PENDING)
                 .userStatus(User.UserStatuses.USER).firstName(firstName).lastName(lastName).phone(phone)
@@ -69,10 +65,10 @@ public class RegisterPageController {
             try {
                 userDao.insertUser(user,generatedPassword,clientIpAddress);
             } catch (PasswordExistsException e) {
-                model.addAttribute("registerError", Errors.PASSWORD_EXISTS.getErrorDescripton());
+                model.addAttribute("registerError", Errors.PASSWORD_EXISTS.getErrorDescription());
                 return new ModelAndView("register_page");
             } catch (UserExistsException e) {
-                model.addAttribute("registerError",Errors.USER_EXISTS.getErrorDescripton());
+                model.addAttribute("registerError",Errors.USER_EXISTS.getErrorDescription());
             }
             model.addAttribute("generatedPassword",generatedPassword);
             return new ModelAndView("register_page");

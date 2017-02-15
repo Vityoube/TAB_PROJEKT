@@ -171,7 +171,7 @@ public class UserDao {
 
 
     public void logoutUser(String username,String ip){
-        String userLogoutScript="udpate Uzytkownicy set u_online=false " +
+        String userLogoutScript="update Uzytkownicy set u_online=false " +
                 "where u_nazwa_uzytkownika=?";
         jdbcTemplate.update(userLogoutScript,new Object[]{username});
         actionDao.insertAction(Action.ActionTypes.LOGOUT,new Timestamp(System.currentTimeMillis()),findUserId(username),

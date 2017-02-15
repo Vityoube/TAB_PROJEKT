@@ -52,9 +52,10 @@ public class PasswordDao {
             throws PasswordNotFoundException {
         if (!findOldPassword(oldPassword))
             throw new PasswordNotFoundException();
+        long oldPasswordId=findOldPasswordId(oldPassword);
         String updatePasswordScript="update Hasla set h_haslo=?" +
-                " where h_halso=?;";
-        jdbcTemplate.update(updatePasswordScript,new Object[]{newPassword,oldPassword});
+                " where h_id=?;";
+        jdbcTemplate.update(updatePasswordScript,new Object[]{newPassword,oldPasswordId});
     }
 
     public boolean findOldPassword(String oldPassword){
@@ -87,6 +88,16 @@ public class PasswordDao {
             return true;
         } catch(EmptyResultDataAccessException e){
             return false;
+        }
+    }
+
+    public long findOldPasswordId(String oldPassword){
+        String findOldPasswordIdScript="select h_id from Hasla where h_haslo=?";
+        try{
+            long passwordId=jdbcTemplate.queryForObject(findOldPasswordIdScript,new Object[]{oldPassword},Long.class);
+            return passwordId;
+        } catch (EmptyResultDataAccessException e){
+            return 0;
         }
     }
 
