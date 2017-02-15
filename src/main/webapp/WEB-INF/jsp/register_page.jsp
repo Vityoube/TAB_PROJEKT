@@ -32,7 +32,9 @@
         Adres:&nbsp;<input type="text" name="address">
         <br>
         <br>
+        <input type="submit" value="powrót" formaction=""/>
         <input type="submit" value="rejestruj" formaction="register" formmethod="post"/>
+
         <c:choose>
             <c:when test="${!empty registerError}">
                 <p style="color: red">${registerError}</p>
