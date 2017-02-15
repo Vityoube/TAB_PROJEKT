@@ -32,7 +32,7 @@
         Adres:&nbsp;<input type="text" name="address">
         <br>
         <br>
-        <input type="submit" value="powrót" formaction=""/>
+        <input type="submit" value="powrót" formaction="cancel"/>
         <input type="submit" value="rejestruj" formaction="register" formmethod="post"/>
 
         <c:choose>
